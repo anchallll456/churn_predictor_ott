@@ -4,8 +4,8 @@ import Dashboard from './components/Dashboard';
 import Predictor from './components/Predictor';
 import AiAgent from './components/AiAgent';
 import Reports from './components/Reports';
-import { generateDataset } from './services/dataGenerator';
 import { trainModel } from './services/mlEngine';
+import { loadChurnDatasets } from './services/datasetLoader';
 import { CustomerData, BusinessMetrics, ModelMetrics, FeatureImportance } from './types';
 import { Database, Loader2 } from 'lucide-react';
 
@@ -16,20 +16,24 @@ const App: React.FC = () => {
   const [modelMetrics, setModelMetrics] = useState<ModelMetrics | null>(null);
   const [features, setFeatures] = useState<FeatureImportance[]>([]);
   
-  // Initialize Data and "Train" Model on Mount
+  // Initialize data and train model on mount
   useEffect(() => {
-    // Simulate async data loading
-    setTimeout(() => {
-      const generatedData = generateDataset(5000);
-      setData(generatedData);
-      
-      // Train model
-      const { metrics, features: impFeatures } = trainModel(generatedData);
-      setModelMetrics(metrics);
-      setFeatures(impFeatures);
-      
-      setLoading(false);
-    }, 1500);
+    const initialize = async () => {
+      try {
+        const loadedData = await loadChurnDatasets();
+        setData(loadedData);
+
+        const { metrics, features: impFeatures } = trainModel(loadedData);
+        setModelMetrics(metrics);
+        setFeatures(impFeatures);
+      } catch (error) {
+        console.error('Dataset loading failed:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initialize();
   }, []);
 
   // Calculate Aggregated Business Metrics
@@ -62,7 +66,7 @@ const App: React.FC = () => {
       <div className="bg-netflix-black h-screen w-full flex flex-col items-center justify-center text-white space-y-4">
         <Loader2 size={48} className="animate-spin text-netflix-red" />
         <h2 className="text-xl font-bold tracking-widest">INITIALIZING STREAMGUARD</h2>
-        <p className="text-gray-500 text-sm">Generating synthetic dataset & training ML models...</p>
+        <p className="text-gray-500 text-sm">Loading provided datasets and training ML models...</p>
       </div>
     );
   }
@@ -76,7 +80,7 @@ const App: React.FC = () => {
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-2 text-xs text-gray-500 bg-white/5 px-3 py-1 rounded-full border border-white/10">
             <Database size={12} />
-            <span>Dataset: 5,000 Records Loaded</span>
+            <span>Dataset: {data.length.toLocaleString()} Records Loaded</span>
           </div>
           <div className="flex items-center gap-2">
              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
