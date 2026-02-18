@@ -1,0 +1,5 @@
+{
+  "name": "StreamGuard Analytics",
+  "description": "A production-grade Customer Churn Prediction & Analytics Platform for OTT streaming services. Features real-time ML inference, AI-powered business insights via Gemini, and interactive data visualization.",
+  "requestFramePermissions": []
+}
